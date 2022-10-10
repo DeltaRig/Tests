@@ -1,13 +1,14 @@
 package com.mockitotutorial.happyhotel.booking;
 
+import java.lang.reflect.Executable;
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.Collections;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 class BookServiceTest {
@@ -96,5 +97,39 @@ class BookServiceTest {
 				() -> assertEquals(expectedSecondCall, actualSecond));
 	}
     
+    // if no room as requested and no room is available should return a expection, to test the makebooking that call the findAvailableRoomId we could write this when that thenThrow instend of thenReturn
+    @Test
+	void should_ThrowException_When_NoRoomAvailable() {
+		// given
+		BookingRequest bookingRequest = new BookingRequest("1", LocalDate.of(2020, 01, 01),
+				LocalDate.of(2020, 01, 05), 2, false);
+		when(this.roomServiceMock.findAvailableRoomId(bookingRequest))
+				.thenThrow(BusinessException.class);
+
+		// when
+		Executable executable = () -> bookingService.makeBooking(bookingRequest);
+		
+		// then
+		assertThrows(BusinessException.class, executable);
+	}
+
+    // To flexible assert exist “argument matchers” (anyString(), anyObject(), anyVararg(), ...)
+    // the diference to the last test is when the exception will happen:
+    // last was in roomServiceMock >> now in paymentServiceMock
+    // and this test should pass if we give to pay method both values or just one espectifing that the other parameter is eq(value) or both with any as is bellow
+    // any() insted of anyDouble() in this test didn't work 
+    @Test
+	void should_NotCompleteBooking_When_PriceTooHigh() {
+		// given
+		BookingRequest bookingRequest = new BookingRequest("1", LocalDate.of(2020, 01, 01),
+				LocalDate.of(2020, 01, 05), 2, true);
+		when(this.paymentServiceMock.pay(any(), anyDouble())).thenThrow(BusinessException.class);
+
+		// when
+		Executable executable = () -> bookingService.makeBooking(bookingRequest);
+
+		// then
+		assertThrows(BusinessException.class, executable);
+	}
 
 }
