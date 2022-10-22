@@ -1,12 +1,15 @@
 package com.mockitotutorial.happyhotel.booking;
 
-import java.lang.reflect.Executable;
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.Collections;
 
-import org.junit.jupiter.api.*;
 
+
+import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.function.Executable;
+
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
@@ -127,9 +130,8 @@ class BookServiceTest {
 
 		// when
 		Executable executable = () -> bookingService.makeBooking(bookingRequest);
-
-		// then
-		assertThrows(BusinessException.class, executable);
+        // then
+        assertThrows(BusinessException.class, executable);
 	}
 
 }
