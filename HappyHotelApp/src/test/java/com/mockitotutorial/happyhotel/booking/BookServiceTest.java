@@ -134,4 +134,70 @@ class BookServiceTest {
         assertThrows(BusinessException.class, executable);
 	}
 
+    /**Verify behaviour */
+    @Test
+    void should_InvokePayment_When_Prepaid(){
+        // given
+        BookingRequest bookingRequest = new BookingRequest("1", LocalDate.of(2020, 10, 01), LocalDate.of(2020, 01, 05), 2, true);
+
+        // when
+        bookingService.makeBooking(bookingRequest);
+
+        // then
+        verify(paymentServiceMock, times(1)).pay(bookingRequest, 400.0);
+        verifyNoMoreInteractions(paymentServiceMock);
+        // times to make sure how many time this verify will be called
+    }
+
+    /** Verifying Behaviour */
+    @Test
+    void should_InvokePayment_When_NotPrepaid(){
+        // given
+        BookingRequest bookingRequest = new BookingRequest("1", LocalDate.of(2020, 10, 01), LocalDate.of(2020, 01, 05), 2, false);
+
+        // when
+        bookingService.makeBooking(bookingRequest);
+
+        // then
+        verify(paymentServiceMock, never()).pay(any(), anyDouble());
+        verifyNoMoreInteractions(paymentServiceMock);
+    }
+
+    /** Spies 
+     * mock = dummy object with no real logic
+     * spy = real object with real logic that we can modify
+     * 
+     * mocks: when(mock.method()).thenReturn()
+     * spies: doReturn().when(spy).method()
+    */
+    @Test
+    void should_InvokePayment_When_InputOK(){
+        // given
+        BookingRequest bookingRequest = new BookingRequest("1", LocalDate.of(2020, 10, 01), LocalDate.of(2020, 01, 05), 2, true);
+
+        // when
+        String bookingId = bookingService.makeBooking(bookingRequest);
+
+        // then
+        verify(bookingDAOMock).save(bookingRequest);
+        System.out.println("bookingId=" + bookingId);
+
+    }
+
+    @Test
+    void should_CancelBooking_When_InputOK(){
+        // given
+        BookingRequest bookingRequest = new BookingRequest("1", LocalDate.of(2020, 10, 01), LocalDate.of(2020, 01, 05), 2, true);
+        bookingRequest.setRoomId("1.3");
+        String bookingId = "1";
+
+        doReturn(bookingRequest).when(bookingDAOMock).get(bookingId);
+
+        // when
+        bookingService.cancelBooking(bookingId);
+
+        // then
+        
+    }
+
 }
