@@ -3,6 +3,8 @@
  *  Argument Captors
  *  Mockito BDD
  *  Mocking Static Methods
+ *  Mockito answers
+ *  Mocking Final
  */
 
 package com.mockitotutorial.happyhotel.booking;
@@ -142,7 +144,7 @@ class BookServiceAdvancedTest {
 	}
 
     // Mocking Static Methods
-    // To use this in pom.xml should have artifactId 'mockito-inlone' instend of 'mockito-core' this change make able to test static method without broke the tests that was passing in core
+    // To use this in pom.xml should have artifactId 'mockito-inlone' instend of 'mockito-core' this change make able to test static method
     @Test
     void should_CalculateCorrectPrice(){
         try (MockedStatic<CurrencyConverter> mockedConverter = mockStatic(CurrencyConverter.class)) {
@@ -160,5 +162,39 @@ class BookServiceAdvancedTest {
         }
     }
 
+    // using mockito answers
+    /**
+     * In all tests above the then return a constant value, with thenAnswer. Awnsers are a slightly more advanced concept.
+     */
+    @Test
+    void should_CalculateCorrectPrice_answer(){
+        try (MockedStatic<CurrencyConverter> mockedConverter = mockStatic(CurrencyConverter.class)) {
+            // given
+            BookingRequest bookingRequest = new BookingRequest("1", LocalDate.of(2020, 01, 01), LocalDate.of(2020,01,05), 2, false);
 
+            double expected = 400.0 * 0.8;
+            mockedConverter.when(() -> CurrencyConverter.toEuro(anyDouble())).thenAnswer(inv -> (double) inv.getArgument(0) * 0.8);
+            
+            // when
+            double actual = bookingService.calculatePriceEuro(bookingRequest);
+
+            // then
+            assertEquals(expected, actual);
+        }
+    }
+
+    // Mocking Final
+    // To use this in pom.xml should have artifactId 'mockito-inline' instend of 'mockito-core' this change make able to test static method
+    @Test
+    void should_CountAvailablePlaces_When_OnRoomAvailable() {
+        // given
+        when(this.roomServiceMock.getAvailableRooms()).thenReturn(Collections.singletonList(new Room("Room 1", 5)));
+        int expected = 5;
+
+        // when
+        int actual = bookingService.getAvailablePlaceCount();
+
+        // then
+        assertEquals(expected, actual);
+    }
 }

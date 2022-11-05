@@ -1,5 +1,5 @@
 # Tests
-JUnit, mockito
+JUnit, [Mockito](https://github.com/mockito/mockito/wiki/FAQ)
 
 ## Unit Tests
 Are written for single software parts. Typically one unit test in Java verifies one class method.
