@@ -1,3 +1,15 @@
+/**
+ * Mockito 4 Basics
+ *  Default Return Values
+ *  Returning Custom Values
+ *  Multiple thenReturn calls
+ *  Throwing Exceptions
+ *  Mocking Void methods
+ *  Argument Matchers
+ *  Verifying Behavior
+ *  Spies
+ */
+
 package com.mockitotutorial.happyhotel.booking;
 
 import java.time.LocalDate;
@@ -7,21 +19,36 @@ import java.util.Collections;
 
 
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.function.Executable;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Spy;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
+//@ExtendWith(MockitoExtension.class)
 class BookServiceTest {
 
+    @InjectMocks
     private BookingService bookingService;
+
+    @Mock
     private PaymentService paymentServiceMock;
+
+    @Mock
     private RoomService roomServiceMock;
+
+    @Spy
     private BookingDAO bookingDAOMock;
+
+    @Mock
     private MailSender mailSenderMock;
-    
+
     @BeforeEach
     void setup() {
         this.paymentServiceMock = mock(PaymentService.class);
@@ -116,6 +143,39 @@ class BookServiceTest {
 		assertThrows(BusinessException.class, executable);
 	}
 
+    // in this test is mocked void methods
+    @Test
+	void should_ThrowException_When_NoRoomAvailableV2() {
+		// given
+		BookingRequest bookingRequest = new BookingRequest("1", LocalDate.of(2020, 01, 01),
+				LocalDate.of(2020, 01, 05), 2, false);
+        // to void methods
+        doThrow(new BusinessException()).when(mailSenderMock).sendBookingConfirmation(any());
+
+		// when
+		Executable executable = () -> bookingService.makeBooking(bookingRequest);
+		
+		// then
+		assertThrows(BusinessException.class, executable);
+	}
+
+    // To mock void methods we can start with doThrow or doNothing when()
+    // doNothing is the default behavior of void methods so we didn't need this to test
+    @Test
+	void should_NotThrowException_When_MailNotReady() {
+		// given
+		BookingRequest bookingRequest = new BookingRequest("1", LocalDate.of(2020, 01, 01),
+				LocalDate.of(2020, 01, 05), 2, false);
+        // to void methods
+        doNothing().when(mailSenderMock).sendBookingConfirmation(any());
+
+		// when
+		Executable executable = () -> bookingService.makeBooking(bookingRequest);
+		
+		// then
+		// no exception thrown
+	}
+
     // To flexible assert exist “argument matchers” (anyString(), anyObject(), anyVararg(), ...)
     // the diference to the last test is when the exception will happen:
     // last was in roomServiceMock >> now in paymentServiceMock
@@ -136,18 +196,21 @@ class BookServiceTest {
 
     /**Verify behaviour */
     @Test
-    void should_InvokePayment_When_Prepaid(){
-        // given
-        BookingRequest bookingRequest = new BookingRequest("1", LocalDate.of(2020, 10, 01), LocalDate.of(2020, 01, 05), 2, true);
+	void should_InvokePayment_When_Prepaid() {
+		// given
+		BookingRequest bookingRequest = new BookingRequest("1", LocalDate.of(2020, 01, 01),
+				LocalDate.of(2020, 01, 05), 2, true);
 
-        // when
-        bookingService.makeBooking(bookingRequest);
+		// when
+		bookingService.makeBooking(bookingRequest);
 
-        // then
-        verify(paymentServiceMock, times(1)).pay(bookingRequest, 400.0);
-        verifyNoMoreInteractions(paymentServiceMock);
-        // times to make sure how many time this verify will be called
-    }
+		// then
+		verify(paymentServiceMock, times(1)).pay(bookingRequest, 400.0);
+		verifyNoMoreInteractions(paymentServiceMock);
+        // 'times' to make sure how many time this verify will be called
+
+	}
+
 
     /** Verifying Behaviour */
     @Test
@@ -197,7 +260,9 @@ class BookServiceTest {
         bookingService.cancelBooking(bookingId);
 
         // then
-        
+        // no exception thrown
     }
+
+    
 
 }
