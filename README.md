@@ -11,7 +11,7 @@ Are written for single software parts. Typically one unit test in Java verifies 
 
 ## What should be mocked?
 
-![alt text](https://github.com/DeltaRig/Tests/blob/main/class+diagram.png.jpg?raw=true)
+![alt text](class+diagram.png)
 
 ## Notations about test
 
@@ -38,3 +38,10 @@ Is a good practice annotate for any attribute if it is a @InjectMocks, @Mock, @S
  - Argument Matchers
  - Verifying Behavior
  - Spies
+
+*Advanced mockito:*
+ - Argument Captors
+ - Mockito BDD
+ - Mocking Static Methods
+ - Mockito answers
+ - Mocking Final
