@@ -1,22 +1,43 @@
+/***
+ * Advanced:
+ *  Argument Captors
+ *  Mockito BDD
+ *  Mocking Static Methods
+ */
+
 package com.mockitotutorial.happyhotel.booking;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
+import static org.mockito.BDDMockito.*;
 
 import java.time.LocalDate;
 import java.util.*;
 
 import org.junit.jupiter.api.*;
-import org.mockito.ArgumentCaptor;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.*;
 
+//@ExtendWith(MockitoExtension.class)
 class BookServiceAdvancedTest {
 
-	private BookingService bookingService;
-	private PaymentService paymentServiceMock;
-	private RoomService roomServiceMock;
-	private BookingDAO bookingDAOMock;
-	private MailSender mailSenderMock;
+    @InjectMocks
+    private BookingService bookingService;
+
+    @Mock
+    private PaymentService paymentServiceMock;
+
+    @Mock
+    private RoomService roomServiceMock;
+
+    @Spy
+    private BookingDAO bookingDAOMock;
+
+    @Mock
+    private MailSender mailSenderMock;
+
+    @Captor
 	private ArgumentCaptor<Double> doubleCaptor;
 
 	@BeforeEach
@@ -32,6 +53,7 @@ class BookServiceAdvancedTest {
 		this.doubleCaptor = ArgumentCaptor.forClass(Double.class);
 	}
 
+    // Argument Captors
 	@Test
 	void should_PayCorrectPrice_When_InputOK() {
 		// given
@@ -66,5 +88,77 @@ class BookServiceAdvancedTest {
 
 		assertEquals(expectedValues, capturedArguments);
 	}
+
+    // Mockito BDD
+    /**
+     * 'when...thenReturn' we replace for 'given...willReturn'
+     */
+    @Test
+    void should_CountAvailablePlaces_When_MultipleRoomsAvailable(){
+        // given
+        given(this.roomServiceMock.getAvailableRooms()).willReturn(Collections.singletonList(new Room("Room 1", 2)));
+
+        int expected = 2;
+
+        // when
+        int actual = bookingService.getAvailablePlaceCount();
+
+        // then
+        assertEquals(expected, actual);
+    }
+
+    /**
+     * And chenge the 'verify(parm1, times(x))' to 'then...should(times(x))'
+     */
+    @Test
+	void should_InvokePayment_When_Prepaid() {
+		// given
+		BookingRequest bookingRequest = new BookingRequest("1", LocalDate.of(2020, 01, 01),
+				LocalDate.of(2020, 01, 05), 2, true);
+
+		// when
+		bookingService.makeBooking(bookingRequest);
+
+        // then
+        then(paymentServiceMock).should(times(1)).pay(bookingRequest, 400.0);
+		verifyNoMoreInteractions(paymentServiceMock);
+	}
+
+    // Strict Stubbing (defining behaviour)
+    // Stubbing is a good thing in general, so don't overuse the Lenient() invocation
+    @Test
+	void should_InvokePayment_Stubbing() {
+		// given
+		BookingRequest bookingRequest = new BookingRequest("1", LocalDate.of(2020, 01, 01),
+				LocalDate.of(2020, 01, 05), 2, false);
+        when(paymentServiceMock.pay(any(), anyDouble())).thenReturn("1");
+        //Lenient().when(paymentServiceMock.pay(any(), anyDouble())).thenReturn("1");
+
+		// when
+		bookingService.makeBooking(bookingRequest);
+
+        // then
+        // no exception is thrown
+	}
+
+    // Mocking Static Methods
+    // To use this in pom.xml should have artifactId 'mockito-inlone' instend of 'mockito-core' this change make able to test static method without broke the tests that was passing in core
+    @Test
+    void should_CalculateCorrectPrice(){
+        try (MockedStatic<CurrencyConverter> mockedConverter = mockStatic(CurrencyConverter.class)) {
+            // given
+            BookingRequest bookingRequest = new BookingRequest("1", LocalDate.of(2020, 01, 01), LocalDate.of(2020,01,05), 2, false);
+
+            double expected = 400.0;
+            mockedConverter.when(() -> CurrencyConverter.toEuro(anyDouble())).thenReturn(400.0);
+            
+            // when
+            double actual = bookingService.calculatePriceEuro(bookingRequest);
+
+            // then
+            assertEquals(expected, actual);
+        }
+    }
+
 
 }
