@@ -27,7 +27,9 @@ Is a good practice annotate for any attribute if it is a @InjectMocks, @Mock, @S
 
 @SpyBean to create a spy bean instante
 
-## What you will find in Mockito part (src\test\java\com\mockitotutorial\happyhotel\booking)
+## What you will find in Mockito part 
+
+### happyhotel(src\test\java\com\mockitotutorial\happyhotel\booking)
 
 *Mockito 4 Basics:*
  - Default Return Values
@@ -45,3 +47,7 @@ Is a good practice annotate for any attribute if it is a @InjectMocks, @Mock, @S
  - Mocking Static Methods
  - Mockito answers
  - Mocking Final
+
+### SpringRestContrTestStudServices
+
+Have tests in controller
